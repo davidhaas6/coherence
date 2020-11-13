@@ -162,7 +162,7 @@ class MainMenu {
         let height = 50;
         let spacing = 32;
 
-        let playClicked = () => { print("Play button clicked -- not implemented") };
+        let playClicked = () => { game.loadLevel() };
         let instructionsClicked = () => { gameState = GameState.instructionsMenu };
         let settingsClicked = () => { gameState = GameState.settingsMenu };
 
@@ -172,11 +172,8 @@ class MainMenu {
     }
 
     update() {
-        this.player.process();
         this.player.draw();
-        this.enemy.process();
         this.enemy.draw();
-        this.enemy2.process();
         this.enemy2.draw();
 
         this.updateCharges();

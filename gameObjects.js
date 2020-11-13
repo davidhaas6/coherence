@@ -4,16 +4,18 @@ var Dir = {
     RIGHT: 1,
 }
 
+
+
+
 class Player {
     constructor(x, y) {
         this.pos = createVector(x, y);
         this.acceleration = createVector(0, 0);
         this.velocity = createVector(0, 0);
 
-        this.width = 32;
-        this.height = 64;
+        this.w = 32;
+        this.h = 64;
 
-        this.jumpHeight = 32; // pixels
         this.airborne = false;
         this.jumpFlag = false;
 
@@ -21,21 +23,27 @@ class Player {
             jump: createVector(0, -6),
             moveRight: createVector(1, 0),
             moveLeft: createVector(-1, 0),
-            gravity: createVector(0, 0.2),
+            gravity: createVector(0, 0.4),
 
             dragFactor: -0.2,
+            collisionFactor: -0.1,
         }
 
         this.curDirection = Dir.RIGHT;
     }
 
+    centroid() {
+        return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
+    }
+
     process() {
         this.processMovement();
 
-        // gravity
-        if (this.airborne) {
+        // if (this.airborne) {
+            //TODO: Find a way to know when the player has nothing below them
+            // this is a quick-fix that produces collisions on every step
             this.acceleration.add(this.force.gravity);
-        }
+        // }
 
         // drag
         this.acceleration.add(this.force.dragFactor * this.velocity.x, 0);
@@ -54,9 +62,23 @@ class Player {
             this.acceleration.add(this.force.moveRight);
             this.curDirection = Dir.RIGHT;
         }
-        if ( (keyIsDown(32) || keyIsDown(87)) && !this.airborne) {
+
+        // Jumping
+        if ((keyIsDown(32) || keyIsDown(87)) && !this.airborne) {
             this.acceleration.add(this.force.jump);
             this.airborne = true;
+        }
+    }
+
+    processCollision(collision) {
+        print("collision!");
+        if (collision == "left" || collision == "right") {
+            this.velocity.x *= this.force.collisionFactor;
+        } else if (collision == "bottom") {
+            this.airborne = false;
+            this.velocity.y = 0;
+        } else if (collision == "top") {
+            this.velocity.y *= this.force.collisionFactor;
         }
     }
 
@@ -64,7 +86,7 @@ class Player {
         push();
         switch (this.curDirection) {
             case Dir.LEFT:
-                translate(this.pos.x + this.width, this.pos.y);
+                translate(this.pos.x + this.w, this.pos.y);
                 applyMatrix(-1, 0, 0, 1, 0, 0);
                 break;
             case Dir.RIGHT:
@@ -73,20 +95,37 @@ class Player {
         }
 
         image(sprites.player, 0, 0);
+        pop();
 
+        // Draw hand
+        push();
+        translate(this.pos);
         fill(63, 81, 181);
-        stroke(0);
-        circle(this.width + 10, 32, 8);
-        circle(this.width, 35, 8);
+        strokeWeight(0);
+        let handLoc = this.getHandLocation();
+        circle(handLoc.x, handLoc.y, 8);
         pop();
     }
+
+    getHandLocation() {
+        let mouseLoc = createVector(mouseX - SCREEN_X/2,mouseY - SCREEN_Y/2);
+        print(mouseLoc);
+        let playerToMouse = mouseLoc;
+        if (playerToMouse.mag() > 30)
+            playerToMouse.setMag(30);
+            
+        playerToMouse.add(this.w/2, this.h/2);
+        return playerToMouse;
+    }
+
+
 }
 
 class Enemy {
     constructor(x, y) {
         this.pos = createVector(x, y);
-        this.width = 32;
-        this.height = 64;
+        this.w = 32;
+        this.h = 64;
     }
 
     process() {
@@ -102,6 +141,32 @@ class Enemy {
 }
 
 class Wall {
+    constructor(x, y) {
+        this.pos = createVector(x, y);
 
+        this.w = TILE_SIZE;
+        this.h = TILE_SIZE;
+        this.sprite = random(sprites.walls);
+    }
+
+    // bbox() {
+    //     return new BoundingBox(
+    //         this.x,
+    //         this.y,
+    //         this.w + this.x,
+    //         this.h + this.y
+    //     );
+    // }
+
+    centroid() {
+        return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
+    }
+
+    draw() {
+        push();
+        translate(this.pos);
+        image(this.sprite, 0, 0, this.w, this.h);
+        pop();
+    }
 }
 
