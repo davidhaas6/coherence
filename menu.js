@@ -1,3 +1,6 @@
+// David Haas
+// Menu elements used in coherence
+
 class Intro {
     constructor() {
         this.x = 18;
@@ -239,7 +242,8 @@ class Instructions {
         textSize(20);
         // textFont('Helvetica');
         text('Press A or D to move left or right.', 20, 110);
-        text('Press space to jump.', 20, 140);
+        text('Press space or W to jump.', 20, 140);
+        text('Reach the teleporter to win.', 20, 170);
         pop();
     }
     onClick(event) {

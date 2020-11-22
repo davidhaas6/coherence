@@ -1,16 +1,19 @@
+// David Haas
+// Animation elements used in coherence
 
 class Charge {
-    constructor(x, y, initAccel = createVector(0, 0), noisyMovement = false, audio = true, volume = 0.01, diameter = 5) {
+    constructor(x, y, initAccel, noisyMovement = false, audio = true, volume = 0.01, diameter = 5, lifeSpan) {
         this.position = createVector(x, y);
         this.velocity = createVector(0, 0);
-        this.acceleration = initAccel;
+        this.acceleration = initAccel ?? createVector(0, 0);
         this.diameter = max(3, randomGaussian(diameter, 1))
 
         this.color = lerpColor(palette.charge1, palette.charge2, random());
         this.numTriangles = max(3, randomGaussian(5, 2));
         this.zappiness = 0.2;
 
-        this.lifeSpan = randomGaussian(4, 1) * TARGET_FPS;
+        this.lifeSpan = (lifeSpan ?? randomGaussian(4, 1)) * TARGET_FPS;
+        // print(this.lifeSpan);
         this.riseFrames = this.diameter / 75 * TARGET_FPS;
         this.spawnFrame = frameCount;
 
@@ -112,15 +115,16 @@ class Charge {
 }
 
 class ChargeGroup {
-    constructor(maxAudible = 100, noisy = false, diameter = 5) {
+    constructor(maxAudible = 100, noisy = false, diameter = 5, lifeSpan) {
         this.charges = [];
         this.noisyMovement = noisy;
         this.maxAudible = maxAudible; // max # of charges to paly audio
         this.diameter = diameter;
+        this.lifeSpan = lifeSpan
     }
 
     add(x, y, dir = p5.Vector.random2D()) {
-        this.charges.push(new Charge(x, y, dir, this.noisyMovement, this.charges.length < this.maxAudible, 0.01 * 100 / this.maxAudible, this.diameter));
+        this.charges.push(new Charge(x, y, dir, this.noisyMovement, this.charges.length < this.maxAudible, 0.01 * 100 / this.maxAudible, this.diameter, this.lifeSpan));
     }
 
     process() {

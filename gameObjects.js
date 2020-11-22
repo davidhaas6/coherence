@@ -1,10 +1,10 @@
+// David Haas
+// The classes for objects in the game
 
 var Dir = {
     LEFT: 0,
     RIGHT: 1,
 }
-
-
 
 
 class Player {
@@ -20,9 +20,9 @@ class Player {
         this.jumpFlag = false;
 
         this.force = {
-            jump: createVector(0, -6),
-            moveRight: createVector(1, 0),
-            moveLeft: createVector(-1, 0),
+            jump: createVector(0, -8),
+            moveRight: createVector(1.5, 0),
+            moveLeft: createVector(-1.5, 0),
             gravity: createVector(0, 0.4),
 
             dragFactor: -0.2,
@@ -71,7 +71,6 @@ class Player {
     }
 
     processCollision(collision) {
-        print("collision!");
         if (collision == "left" || collision == "right") {
             this.velocity.x *= this.force.collisionFactor;
         } else if (collision == "bottom") {
@@ -98,6 +97,7 @@ class Player {
         pop();
 
         // Draw hand
+        if(gameState == GameState.playing) {
         push();
         translate(this.pos);
         fill(63, 81, 181);
@@ -105,17 +105,16 @@ class Player {
         let handLoc = this.getHandLocation();
         circle(handLoc.x, handLoc.y, 8);
         pop();
+        }
     }
 
     getHandLocation() {
-        let mouseLoc = createVector(mouseX - SCREEN_X/2,mouseY - SCREEN_Y/2);
-        print(mouseLoc);
-        let playerToMouse = mouseLoc;
-        if (playerToMouse.mag() > 30)
-            playerToMouse.setMag(30);
-            
-        playerToMouse.add(this.w/2, this.h/2);
-        return playerToMouse;
+        let mouseLoc = createVector(mouseX,mouseY).sub(game.getTranslation()).sub(this.centroid());
+        if (mouseLoc.mag() > 30)
+        mouseLoc.setMag(30);
+
+        mouseLoc.add(this.w/2, this.h/2);
+        return mouseLoc;
     }
 
 
@@ -126,18 +125,36 @@ class Enemy {
         this.pos = createVector(x, y);
         this.w = 32;
         this.h = 64;
+
+        this.curDirection = Dir.RIGHT;
     }
 
     process() {
 
     }
 
+    centroid() {
+        return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
+    }
+
+
     draw() {
         push();
-        translate(this.pos);
+        switch (this.curDirection) {
+            case Dir.LEFT:
+                translate(this.pos.x + this.w, this.pos.y);
+                applyMatrix(-1, 0, 0, 1, 0, 0);
+                break;
+            case Dir.RIGHT:
+                translate(this.pos);
+                break;
+        }
+
         image(sprites.enemy, 0, 0);
         pop();
     }
+
+
 }
 
 class Wall {
@@ -149,15 +166,6 @@ class Wall {
         this.sprite = random(sprites.walls);
     }
 
-    // bbox() {
-    //     return new BoundingBox(
-    //         this.x,
-    //         this.y,
-    //         this.w + this.x,
-    //         this.h + this.y
-    //     );
-    // }
-
     centroid() {
         return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
     }
@@ -167,6 +175,33 @@ class Wall {
         translate(this.pos);
         image(this.sprite, 0, 0, this.w, this.h);
         pop();
+    }
+}
+
+
+class Gate {
+    constructor(x, y) {
+        this.pos = createVector(x, y);
+        this.w = TILE_SIZE;
+        this.h = TILE_SIZE;
+        this.center = createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
+
+        this.particles = new ChargeGroup(0, true, 5, 0.75);
+        this.core = new Charge(this.center.x, this.center.y,null,false,false,null, 15, 20000);
+    }
+
+    centroid() {
+        return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
+    }
+
+    draw() {
+        this.particles.draw();
+        this.core.draw();
+    }
+
+    process() {
+        this.particles.add(this.center.x, this.center.y);
+        this.particles.process();
     }
 }
 
