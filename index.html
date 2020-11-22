@@ -8,16 +8,22 @@
 
     <link rel="stylesheet" type="text/css" href="style.css">
 
+    <!-- Globals and Libraries -- no other dependencies -->
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.js"></script>
+    <script src="src/globals.js"></script>
 
-    <script src="globals.js"></script>
-    <script src="gameObjects.js"></script>
-    <script src="animation.js"></script>
-    <script src="menu.js"></script>
+    <!-- Game Objects -->
+    <script src="src/objects/blocks.js"></script>
+    <script src="src/objects/enemy.js"></script>
+    <script src="src/objects/player.js"></script>
+
+
+    <script src="src/animation.js"></script>
+    <script src="src/menu.js"></script>
   </head>
 
   <body>
-    <script src="main.js"></script>
+    <script src="src/main.js"></script>
   </body>
 </html>

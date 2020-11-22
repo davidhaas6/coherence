@@ -19,6 +19,12 @@ function secs() {
     return millis() / 1000;
 }
 
+var Dir = {
+    LEFT: 0,
+    RIGHT: 1,
+}
+
+
 
 
 const level1 = [
