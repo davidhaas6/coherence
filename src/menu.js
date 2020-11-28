@@ -43,6 +43,8 @@ class Intro {
         let fadeColor = color(this.color._getRed(), this.color._getGreen(), this.color._getBlue(), opacity);
 
         push();
+        background(palette.background);
+
         // shearX(PI / 2);
         textFont(this.font);
         textSize(this.size);
@@ -175,6 +177,8 @@ class MainMenu {
     }
 
     update() {
+        background(palette.background);
+
         this.player.draw();
         this.enemy.draw();
         this.enemy2.draw();
@@ -224,6 +228,8 @@ class Instructions {
     }
 
     update() {
+        background(palette.background);
+
         this.backButton.draw();
         this.backButton.process();
 
@@ -257,6 +263,8 @@ class Settings {
     }
 
     update() {
+        background(palette.background);
+
         this.backButton.draw();
         this.backButton.process();
 

@@ -7,6 +7,10 @@ class Enemy {
         this.curDirection = Dir.RIGHT;
     }
 
+    notify(event, data) {
+
+    }
+
     process() {
 
     }

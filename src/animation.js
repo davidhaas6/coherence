@@ -150,3 +150,41 @@ class ChargeGroup {
         this.charges = [];
     }
 }
+
+
+
+
+class BackgroundClouds {
+    constructor(xMax, yMax) {
+        this.backgSeed = random(1500);
+        this.xMax = xMax;
+        this.yMax = yMax;
+    }
+
+    draw(level) {
+        const squareSize = 8;
+        const stepX = 0.1, stepY = 0.1;
+        var noiseX = this.backgSeed, noiseY = 0, noiseSpeed = 0.01;
+
+        var lightness = 0;
+        let opacity = 100;
+
+        push();
+        noStroke();
+        for (let i = 0; i < this.xMax; i += squareSize) {
+            noiseY = 0;
+            for (let j = 0; j < this.yMax; j += squareSize) {
+                var noiseVal = map(noise(noiseX, noiseY), 0, 1, 0, 255 - lightness);
+                let cloudVal = lightness + noiseVal;
+                fill(cloudVal, cloudVal, cloudVal, opacity);
+                rect(i, j, squareSize, squareSize);
+
+                noiseY += stepY;
+            }
+            noiseX += stepX;
+        }
+        this.backgSeed -= noiseSpeed;
+
+        pop();
+    }
+}

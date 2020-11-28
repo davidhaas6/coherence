@@ -11,6 +11,10 @@ class Wall {
         this.sprite = random(sprites.walls);
     }
 
+    notify(event, data) {
+
+    }
+
     centroid() {
         return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
     }
@@ -33,6 +37,10 @@ class Gate {
 
         this.particles = new ChargeGroup(0, true, 5, 0.75);
         this.core = new Charge(this.center.x, this.center.y,null,false,false,null, 15, 20000);
+    }
+
+    notify(event, data) {
+
     }
 
     centroid() {

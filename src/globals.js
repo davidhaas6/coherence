@@ -14,6 +14,25 @@ var fonts;
 var sprites;
 
 
+const GameState = {
+	splashScreen: 0,
+	mainMenu: 1,
+	settingsMenu: 2,
+	instructionsMenu: 3,
+	playing: 4,
+}
+
+const LevelStatus = {
+	playing: 0,
+	lost: 1,
+	won: 2
+}
+
+
+// Game objects
+var gameState;
+let intro;
+
 
 function secs() {
     return millis() / 1000;
