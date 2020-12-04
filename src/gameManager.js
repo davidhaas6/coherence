@@ -11,6 +11,7 @@ class GameManager {
         this.enemies = [];
         this.timelines = [];
         this.gates = [];
+        this.bullets = [];
 
 
         this.levelIndex = 0;
@@ -72,17 +73,17 @@ class GameManager {
         let x_bottomLeft = entity.pos.x + hbuffer;
         let x_bottomRight = entity.pos.x + entity.w - hbuffer;
 
-        return this.whichTile(x_bottomLeft, bottomY) === " " &&
-            this.whichTile(x_bottomRight, bottomY) === " ";
+        return this.whichTile(x_bottomLeft, bottomY) != "w" &&
+            this.whichTile(x_bottomRight, bottomY) != "w";
     }
 
-    collisionCheck(player, wall, adjust = false) {
-        // Distance between the centroids of the player and wall
-        var collisionVector = player.centroid().sub(wall.centroid());
+    collisionCheck(entity1, entity2, adjust = false) {
+        // Distance between the centroids of the two entities
+        var collisionVector = entity1.centroid().sub(entity2.centroid());
         var absCollisionVec = createVector(abs(collisionVector.x), abs(collisionVector.y));
 
         // Threshold distance between centroids for collision
-        var collisionThresh = createVector(player.w / 2 + wall.w / 2, player.h / 2 + wall.h / 2);
+        var collisionThresh = createVector(entity1.w / 2 + entity2.w / 2, entity1.h / 2 + entity2.h / 2);
 
         var collisionDirection = null;
         if (absCollisionVec.x < collisionThresh.x && absCollisionVec.y < collisionThresh.y) {
@@ -111,7 +112,7 @@ class GameManager {
             }
 
             if (adjust) {
-                player.pos.add(adjustment);
+                entity1.pos.add(adjustment);
             }
         }
         return collisionDirection;
@@ -119,7 +120,56 @@ class GameManager {
 
     activeTimeline() {
         return this.timelines[this.timelines.length - 1]
-    };
+    }
+
+    spawnBullet(x, y, v, isPlayer) {
+        this.bullets.push(new Bullet(x, y, v, isPlayer));
+    }
+
+    processBullets() {
+        let toRemove = [];
+        for (let i = 0; i < this.bullets.length; i++) {
+            let bullet = this.bullets[i];
+            bullet.process();
+
+            // bullet wall
+            let wallCollision = false;
+            for (let j = 0; j < this.walls.length; j++) {
+                let collision = this.collisionCheck(bullet, this.walls[j]);
+                if (collision != null) {
+                    print("wall collision!! " + collision);
+                    toRemove.push(i);
+                    wallCollision = true;
+                    break;
+                }
+            }
+            if (wallCollision) continue;
+
+
+            if (!bullet.playerBullet) {
+                // bullet-player collision   (fired by enemy)
+                let collision = this.collisionCheck(bullet, this.activeTimeline());
+                if (collision != null) {
+                    print("player collision!! " + collision);
+                    toRemove.push(i);
+                    // TODO: kill player
+                }
+            } else {
+                // bullet-enemy  (fired by player)
+                for (let j = 0; j < this.enemies.length; j++) {
+                    let collision = this.collisionCheck(bullet, this.enemies[j]);
+                    if (collision != null) {
+                        print("enemy collision!! " + collision);
+                        toRemove.push(i);
+                        this.enemies.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+        toRemove.forEach((removeIndex) => this.bullets.splice(removeIndex, 1));  // remove inactive bullets
+    }
 
     getTranslation() {
         var playerLoc = this.activeTimeline().centroid();
@@ -143,9 +193,10 @@ class GameManager {
         return trans;
     }
 
-    draw() {
-        background(palette.background);
 
+    draw() {
+        background(palette.background2);
+        // this.drawBacktiles();
         push();
         translate(this.getTranslation());
 
@@ -153,6 +204,10 @@ class GameManager {
 
         this.walls.forEach((wall, idx) => {
             wall.draw();
+        });
+
+        this.bullets.forEach((bullet, idx) => {
+            bullet.draw();
         });
 
         this.enemies.forEach((enemy, idx) => {
@@ -188,6 +243,7 @@ class GameManager {
         }
     }
 
+
     process() {
         // win/lose
         if (this.levelStatus != LevelStatus.playing && secs() > this.endTime + 2) {
@@ -196,7 +252,9 @@ class GameManager {
             }
             return;
         }
-        
+
+        this.processBullets();
+
         // process enemies
         this.enemies.forEach((enemy, idx) => {
             enemy.process();
@@ -211,7 +269,6 @@ class GameManager {
             }
         });
 
-
         // process player
         if (this.levelStatus == LevelStatus.playing || secs() < (this.endTime + 0.3)) {
             let airState = this.isAirborne(this.activeTimeline()) ?
@@ -222,8 +279,9 @@ class GameManager {
         }
 
 
-        // player-wall collision
+        // wall collisions
         this.walls.forEach((wall) => {
+            // player-wall
             let collision = this.collisionCheck(this.activeTimeline(), wall, true);
             if (collision != null) {
                 this.activeTimeline().processCollision(collision);

@@ -16,13 +16,15 @@ class Player {
         this.h = 30;
 
         this.airborne = false;
+        this.shootFlag = false;
 
         this.force = {
-            jump: createVector(0, -8),
+            jump: createVector(0, -10),
             moveRight: createVector(1.5, 0),
             moveLeft: createVector(-1.5, 0),
-            gravity: createVector(0, 0.4),
+            gravity: createVector(0, 0.6),
 
+            shootFactor: 0.1,
             dragFactor: 0.75,  // percent movement speed when mid air
             frictionFactor: -0.25, // how much player slides after moving
             collisionFactor: -0.1,
@@ -49,6 +51,20 @@ class Player {
 
     process() {
         let keyDown = this.processMovement();
+
+        // shooting
+        if (mouseIsPressed && !this.shootFlag) {
+            this.shootFlag = true;
+            this.fireGun();
+        } else if (!mouseIsPressed) {
+            this.shootFlag = false;
+        }
+
+        // timeline
+        if (keyIsDown(81)) {
+            this.branchTimeline();
+        }
+
         this.processAnimState(keyDown);
 
         if (this.airborne) {
@@ -95,6 +111,19 @@ class Player {
         } else if (collision == "top") {
             this.velocity.y *= this.force.collisionFactor;
         }
+    }
+
+    branchTimeline() {
+        // TODO
+        this.anim.setState(PlayerState.dying);
+    }
+
+    fireGun() {
+        this.anim.setState(PlayerState.shooting);
+        // this.velocity.x *= this.force.shootFactor;
+
+        let vel = this.curDirection == Dir.RIGHT ? createVector(9, 0) : createVector(-9, 0);
+        game.spawnBullet(this.pos.x, this.pos.y + 18, vel, true);
     }
 
     processAnimState(keyDown) {
@@ -157,6 +186,7 @@ class AnimationState {
     constructor(initialState) {
         this.state = initialState;
         this.startFrame = frameCount;
+        this.nextState = null;
 
         this.spritemap = sprites.player_map;
         this.spriteSize = 64;
@@ -181,26 +211,38 @@ class AnimationState {
         ]
     }
 
+
     setState(playerState) {
-        if (playerState != this.state) {
+        if (this.state == PlayerState.shooting || this.state == PlayerState.dying) {
+            this.nextState = playerState;
+            print("setting next state to " + playerState);
+        } else if (playerState != this.state) {
             this.state = playerState;
             this.startFrame = frameCount;
         }
     }
 
     drawPlayer() {
-        let animStateFrames = this.frames[this.state];
-        let frameIdx = Math.floor((frameCount - this.startFrame) / this.frameLength[this.state]) % animStateFrames.length;
-        let currentFrame = animStateFrames[frameIdx];
 
-        // the location of the frame within the spritemap 
-        let src = {
+        // determine which animation frame to play
+        let animationFrames = this.frames[this.state];
+        let animFrameNumber = Math.floor((frameCount - this.startFrame) / this.frameLength[this.state]);  // the non-circular (monotonous increasing) animation frame #
+        if ((this.state == PlayerState.shooting || this.state == PlayerState.dying) && animFrameNumber > animationFrames.length) {
+            this.state = this.nextState;
+            this.startFrame = frameCount;
+            animationFrames = this.frames[this.state];
+            animFrameNumber = Math.floor((frameCount - this.startFrame) / this.frameLength[this.state]);
+        }
+        let currentFrame = animationFrames[animFrameNumber % animationFrames.length];  // the grid index of the current animation frame
+
+
+        // draw the animation
+        let src = { // the location of the frame within the spritemap 
             x: (currentFrame % 6) * this.spriteSize,
             y: Math.floor(currentFrame / 6) * this.spriteSize,
         }
 
-        // where to draw the frame on the canvas
-        let dst = {
+        let dst = { // where to draw the frame on the canvas
             x: -14,
             y: -57,
         }

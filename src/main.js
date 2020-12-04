@@ -31,6 +31,11 @@ function setup() {
 		background2: color(114, 85, 55),
 		charge1: color(0, 191, 255),
 		charge2: color(0, 255, 192),
+
+		sentry: color(205, 92, 92),
+		sentryPointer: color(255, 0, 0),
+
+		bullet: color(182, 124, 124),
 	}
 
 	globalSynth = new p5.MonoSynth();
@@ -51,7 +56,7 @@ function drawFPS() {
 	fill(0, 255, 0, 200);
 	let size = 12;
 	textSize(size);
-	text(round(frameRate()), SCREEN_X-size*1.25, size * 0.9);
+	text(round(frameRate()), SCREEN_X - size * 1.25, size * 0.9);
 }
 
 

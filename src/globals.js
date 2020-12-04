@@ -62,7 +62,7 @@ const level1 = [
     "w p            www          wwwww",
     "w            ww              wwww",
     "wwwwwwwwww                    www",
-    "ww  ww  www       wwwwww        w",
+    "ww  ww  www   e   wwwwww        w",
     "w         wwwwwwwwww   wwwwwwwwww",
 ]
 
