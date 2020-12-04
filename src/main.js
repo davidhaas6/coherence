@@ -10,7 +10,7 @@ function preload() {
 	};
 
 	sprites = {
-		player: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/player.png'),
+		player_map: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/player_sprite.png'),
 		enemy: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/enemy1.png'),
 		walls: [
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall1.png'),
@@ -28,6 +28,7 @@ function setup() {
 
 	palette = {
 		background: color(32, 20, 41),
+		background2: color(114, 85, 55),
 		charge1: color(0, 191, 255),
 		charge2: color(0, 255, 192),
 	}
@@ -44,6 +45,13 @@ function setup() {
 	instructions = new Instructions();
 	settings = new Settings();
 
+}
+
+function drawFPS() {
+	fill(0, 255, 0, 200);
+	let size = 12;
+	textSize(size);
+	text(round(frameRate()), SCREEN_X-size*1.25, size * 0.9);
 }
 
 
@@ -77,6 +85,7 @@ function draw() {
 
 		case GameState.playing: {
 			game.update();
+			drawFPS();
 		}
 
 	}

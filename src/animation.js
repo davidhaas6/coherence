@@ -162,7 +162,7 @@ class BackgroundClouds {
     }
 
     draw(level) {
-        const squareSize = 8;
+        const squareSize = 16;
         const stepX = 0.1, stepY = 0.1;
         var noiseX = this.backgSeed, noiseY = 0, noiseSpeed = 0.01;
 

@@ -11,7 +11,7 @@ class GameManager {
         this.enemies = [];
         this.timelines = [];
         this.gates = [];
-        
+
 
         this.levelIndex = 0;
         this.levelStatus = null;
@@ -65,10 +65,12 @@ class GameManager {
         return tilemap[floor(y / TILE_SIZE)][floor(x / TILE_SIZE)];
     }
 
-    isAirborne(entity, bufferLength = 0) {
-        let bottomY = entity.pos.y + entity.h + bufferLength;
-        let x_bottomLeft = entity.pos.x;
-        let x_bottomRight = entity.pos.x + entity.w;
+    isAirborne(entity) {
+        let vbuffer = 5, hbuffer = 3;  // TODO: this fixes the wall launch bug, but it could introduce its own bugs
+
+        let bottomY = entity.pos.y + entity.h + vbuffer;
+        let x_bottomLeft = entity.pos.x + hbuffer;
+        let x_bottomRight = entity.pos.x + entity.w - hbuffer;
 
         return this.whichTile(x_bottomLeft, bottomY) === " " &&
             this.whichTile(x_bottomRight, bottomY) === " ";
@@ -194,11 +196,13 @@ class GameManager {
             }
             return;
         }
-
+        
+        // process enemies
         this.enemies.forEach((enemy, idx) => {
             enemy.process();
         });
 
+        // process gates
         this.gates.forEach((gate, idx) => {
             gate.process();
             let collision = this.collisionCheck(this.activeTimeline(), gate);
@@ -207,20 +211,24 @@ class GameManager {
             }
         });
 
+
+        // process player
         if (this.levelStatus == LevelStatus.playing || secs() < (this.endTime + 0.3)) {
-            let airState = this.isAirborne(this.activeTimeline()) ? 
-                    PhysicsEvent.AIRBORNE : PhysicsEvent.GROUNDED;
+            let airState = this.isAirborne(this.activeTimeline()) ?
+                PhysicsEvent.AIRBORNE : PhysicsEvent.GROUNDED;
             this.activeTimeline().notify(airState, null);
+
             this.activeTimeline().process();
         }
 
-                // player-wall collision
-                this.walls.forEach((wall) => {
-                    let collision = this.collisionCheck(this.activeTimeline(), wall, true);
-                    if (collision != null) {
-                        this.activeTimeline().processCollision(collision);
-                    }
-                });
+
+        // player-wall collision
+        this.walls.forEach((wall) => {
+            let collision = this.collisionCheck(this.activeTimeline(), wall, true);
+            if (collision != null) {
+                this.activeTimeline().processCollision(collision);
+            }
+        });
     }
 
     update() {
