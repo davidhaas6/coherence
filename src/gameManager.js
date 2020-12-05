@@ -86,7 +86,6 @@ class GameManager {
 
     // Returns the tile at the x,y coordinates in reference to the level
     whichTile(x, y) {
-
         let tilemap = LEVELS[this.levelIndex];
         return tilemap[floor(y / TILE_SIZE)][floor(x / TILE_SIZE)];
     }
@@ -156,8 +155,8 @@ class GameManager {
 
     newTimeline() {
         if (this.canBranch()) {
-            this.timelines.push(new Player(this.playerSpawn[0], this.playerSpawn[1]));
-            // this.activeIndex++;
+            let spawnLoc = this.activeTimeline().locationHistory[0];
+            this.timelines.push(new Player(spawnLoc.x, spawnLoc.y));
             this.usedCharges++;
         }
     }
@@ -167,8 +166,17 @@ class GameManager {
         if (this.timelines.length == 1)
             this.levelWon();
         else {
-            // this.activeIndex--;
-            // this.
+            // need to complete level with all timelines
+            this.timelines.pop();
+            this.activeTimeline().notify(GameEvent.REACTIVATE);
+        }
+    }
+
+    playerHit() {
+        if (this.timelines.length == 1) {
+            this.levelLost();
+        } else {
+            // switch to previous timeline
             this.timelines.pop();
             this.activeTimeline().notify(GameEvent.REACTIVATE);
         }
@@ -209,10 +217,8 @@ class GameManager {
                 let collision = this.collisionCheck(bullet, this.activeTimeline());
                 if (collision != null) {
                     toRemove.push(i);
-
-                    // push back player
                     this.activeTimeline().acceleration.add(bullet.velocity.setMag(10));
-                    this.levelLost();
+                    this.playerHit();
                 }
             } else {
                 // bullet-enemy collision   (fired by player)

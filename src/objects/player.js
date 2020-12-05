@@ -26,6 +26,9 @@ class Player {
         this.branchLength = 15;  // frames for animation to complete
         this.branchKeyReleased = true;
 
+        this.locationHistory = [];
+        this.historyLength = 5 * TARGET_FPS; // keep 5 seconds of location
+
         // shooting 
         this.shootFlag = false;
         this.shootCooldown = 0.5 * TARGET_FPS;
@@ -100,6 +103,8 @@ class Player {
 
     // main processing loop
     process() {
+        this.trackLocation();
+
         let keyDown = this.processMovement();
 
         // shooting
@@ -173,8 +178,9 @@ class Player {
         }
     }
 
-
+    // handle routines for timelines
     processBranching() {
+
         if (keyIsDown(81) && !this.branching) {
             // start branching
             if (game.canBranch()) {
@@ -197,6 +203,15 @@ class Player {
 
         if (!keyIsDown(81)) {
             this.branchKeyReleased = true;
+        }
+    }
+
+    // keep track of the players location to spawn new branches
+    trackLocation() {
+        this.locationHistory.push({ x: this.pos.x, y: this.pos.y });
+
+        if (this.locationHistory.length > this.historyLength) {
+            this.locationHistory.shift();
         }
     }
 
