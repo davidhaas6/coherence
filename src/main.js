@@ -53,8 +53,8 @@ function setup() {
 		charge1: color(0, 191, 255),
 		charge2: color(0, 255, 192),
 
-		sentry: color(205, 92, 92),
-		sentryPointer: color(255, 0, 0),
+		sentry: color(32, 20, 41),
+		sentryPointer: color(	255, 106, 106),
 
 		bullet: color(182, 124, 124),
 	}
@@ -70,7 +70,7 @@ function setup() {
 	mainMenu = new MainMenu();
 	instructions = new Instructions();
 	settings = new Settings();
-
+	levelSelect = new LevelSelect();
 }
 
 function drawFPS() {
@@ -109,10 +109,18 @@ function draw() {
 			break;
 		}
 
+		case GameState.levelSelect: {
+			levelSelect.update();
+			break;
+		}
+
 		case GameState.playing: {
 			game.update();
 			drawFPS();
+			break;
 		}
+
+
 
 	}
 
@@ -130,5 +138,13 @@ function mouseClicked(event) {
 		instructions.onClick(event);
 	} else if (gameState == GameState.settingsMenu) {
 		settings.onClick(event);
+	} else if (gameState == GameState.levelSelect) {
+		levelSelect.onClick(event);
+	}
+}
+
+function keyPressed() {
+	if(keyCode == ESCAPE) {
+		gameState = GameState.mainMenu;
 	}
 }

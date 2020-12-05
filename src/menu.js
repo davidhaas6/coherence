@@ -177,7 +177,7 @@ class MainMenu {
         let height = 50;
         let spacing = 32;
 
-        let playClicked = () => { game.loadLevel() };
+        let playClicked = () => { gameState = GameState.levelSelect };
         let instructionsClicked = () => { gameState = GameState.instructionsMenu };
         let settingsClicked = () => { gameState = GameState.settingsMenu };
 
@@ -217,9 +217,15 @@ class MainMenu {
 
     // animate the player running around and shooting
     updatePlayer() {
-        this.player.draw();
+        try {
+            this.player.draw();
+        } catch (error) {
+            print("ERROR DRAWING PLAYER: " + error);
+            print(this.player.anim);
+        }
+        
 
-        if(random() < 0.02 && frameCount > this.playerAnim.shootStart + this.playerAnim.shootCooldown) {
+        if (random() < 0.02 && frameCount > this.playerAnim.shootStart + this.playerAnim.shootCooldown) {
             // this.playerAnim.isRunning = false;
             this.player.anim.setState(PlayerState.shooting);
             this.playerAnim.shootStart = frameCount;
@@ -232,10 +238,10 @@ class MainMenu {
             this.player.anim.setState(PlayerState.running);
 
             // switch directions
-            let overRight = (this.player.pos.x + this.player.w)  > this.playButton.x + this.playButton.w + 70;
+            let overRight = (this.player.pos.x + this.player.w) > this.playButton.x + this.playButton.w + 70;
             let overLeft = this.player.pos.x < this.playButton.x - 70;
-            if(overRight || overLeft || random() < 0.003) {
-                
+            if (overRight || overLeft || random() < 0.003) {
+
                 this.playerAnim.step *= -1;
                 this.player.curDirection = this.player.curDirection == Dir.LEFT ? Dir.RIGHT : Dir.LEFT;
             }
@@ -283,17 +289,20 @@ class Instructions {
 
         textSize(60);
         text('Instructions', 20, 60);
-        
+
         stroke(palette.charge2);
         strokeWeight(2);
-        line(20,80,SCREEN_X-20, 80);
-        
+        line(20, 80, SCREEN_X - 20, 80);
+
         strokeWeight(1);
         textSize(20);
         // textFont('Helvetica');
         text('Press A or D to move left or right.', 20, 110);
         text('Press space or W to jump.', 20, 140);
         text('Reach the teleporter to win.', 20, 170);
+        // q to branch
+        // esc to main menu
+        // s to slam
         pop();
     }
     onClick(event) {
@@ -319,8 +328,49 @@ class Settings {
         text('Settings', 90, 60);
         pop();
     }
-    
+
     onClick(event) {
         this.backButton.clickEvent(event.clientX, event.clientY);
+    }
+}
+
+
+class LevelSelect {
+    constructor() {
+
+        // initialize buttons
+        const padding = 40;  // to sides and between buttons
+        let numCols = min(LEVELS.length, 2);
+        let numRows = ceil(LEVELS.length / numCols);
+
+        let bwidth = (SCREEN_X - (padding * (2 + numCols - 1))) / numCols;
+        let bheight = (SCREEN_Y - (padding * (2 + numRows - 1))) / numRows;
+
+        this.buttons = [];
+        for (let i = 0; i < LEVELS.length; i++) {
+            let x = padding + (i % numCols) * (bwidth + padding);
+            let y = padding + floor(i / numRows) * (bheight + padding);
+            let button = new Button(x, y, bwidth, bheight,
+                "Level " + (i + 1), () => { 
+                    // print("here");
+                    game.loadLevel(i);
+                 });
+            this.buttons.push(button);
+        }
+    }
+
+    update() {
+        background(palette.background);
+
+        this.buttons.forEach((b) => {
+            b.draw();
+            b.process();
+        });
+    }
+
+    onClick(event) {
+        this.buttons.forEach((b) => {
+            b.clickEvent(event.clientX, event.clientY);
+        });
     }
 }

@@ -30,10 +30,13 @@ class GameManager {
     }
 
     // load a new level
-    loadLevel() {
-        // Loads the level specified by levelIndex
-        this.initEntities();
+    loadLevel(levelNum = null) {
+        if (levelNum != null) {
+            this.levelIndex = levelNum;
+        }
         let tilemap = LEVELS[this.levelIndex];
+
+        this.initEntities();
 
         for (let i = 0; i < tilemap.length; i++) {
             for (let j = 0; j < tilemap[i].length; j++) {
@@ -144,26 +147,29 @@ class GameManager {
 
     // get the player's active timeline
     activeTimeline() {
-        return this.timelines[this.activeIndex];
+        return this.timelines[this.timelines.length - 1];
     }
 
     canBranch() {
-        return this.timelines.length < this.numCharges && this.levelStatus == LevelStatus.playing;
+        return this.usedCharges < this.numCharges && this.levelStatus == LevelStatus.playing;
     }
 
     newTimeline() {
         if (this.canBranch()) {
             this.timelines.push(new Player(this.playerSpawn[0], this.playerSpawn[1]));
-            this.activeIndex++;
+            // this.activeIndex++;
+            this.usedCharges++;
         }
     }
 
     gateReached() {
         this.activeTimeline().notify(GameEvent.TELEPORTING);
-        if (this.activeIndex == 0)
+        if (this.timelines.length == 1)
             this.levelWon();
         else {
-            this.activeIndex--;
+            // this.activeIndex--;
+            // this.
+            this.timelines.pop();
             this.activeTimeline().notify(GameEvent.REACTIVATE);
         }
     }
@@ -313,14 +319,14 @@ class GameManager {
         text("Quanta:", 5, SCREEN_Y - 8);
 
         // charges
-        for (let i = 0; i < this.numCharges - 1; i++) {
+        for (let i = 0; i < this.numCharges; i++) {
             noFill();
             stroke(palette.background2);
             strokeWeight(weight);
             circle(x + i * (spacing + weight + d), y, d);
 
             fill(0, 255, 192, 200);
-            if (this.timelines.length + i < this.numCharges)
+            if (this.usedCharges + i < this.numCharges)
                 circle(x + i * (spacing + weight + d), y, d);
         }
         pop();
@@ -351,8 +357,7 @@ class GameManager {
 
         if (this.levelStatus == LevelStatus.playing || secs() < (this.endTime + 1)) {
             this.timelines.forEach((playerBranch, idx) => {
-                if (idx <= this.activeIndex)  // don't draw timelines who've reached the end
-                    playerBranch.draw();
+                playerBranch.draw();
             });
         }
 
@@ -393,7 +398,6 @@ class GameManager {
         if (this.levelStatus != LevelStatus.playing && secs() > this.endTime + 2) {
             if (secs() > this.endTime + 5) {
                 gameState = GameState.mainMenu;
-                print("moving to menu");
             }
             return;
         }

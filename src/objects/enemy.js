@@ -10,7 +10,7 @@ class Enemy {
         this.h = 32;
 
         this.body = new Charge(this.w / 2, this.h / 2, null, false, false, 0, 16, 100000)
-        this.body.color = palette.background;
+        this.body.color = palette.sentry;
         this.body.numTriangles = 20;
         this.body.zappiness = .1;
 
@@ -20,7 +20,7 @@ class Enemy {
 
         this.attackCooldown = 1;
         this.lastAttack = -1;
-        this.attackDist = 200;
+        this.attackDist = 300;
     }
 
     notify(event, data) {
