@@ -20,7 +20,9 @@ function preload() {
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall3.png'),
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall4.png'),
 		],
-
+		buildings: loadImage('assets/near-buildings-bg.png'),
+		skyline: loadImage('assets/buildings-bg.png'),
+		backg: loadImage('assets/skyline-a.png')
 	};
 
 	// sounds used in the game
@@ -29,6 +31,7 @@ function preload() {
 
 		playerShoot: loadSound('assets/audio/pew.wav'),
 		playerJump: loadSound('assets/audio/jump.wav'),
+		playerThump: loadSound('assets/audio/thump.wav'),
 		newTimeline: loadSound('assets/audio/quantum.wav'),
 
 		enemyDie: loadSound('assets/audio/explode.wav'),
@@ -43,7 +46,8 @@ function setup() {
 
 	palette = {
 		background: color(32, 20, 41),
-		background2: color(114, 85, 55),
+		// background2: color(114, 85, 55),
+		background2: color(0, 0, 60),
 		charge1: color(0, 191, 255),
 		charge2: color(0, 255, 192),
 

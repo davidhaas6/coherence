@@ -55,15 +55,15 @@ const level1 = [
     "w        w ww ww              www",
     "ww            w                 w",
     "w w           ww        www     w",
-    "w    w         wwwww             ",
+    "w w  w  e      wwwww             ",
     " wwww   w ww       www          x",
     "ww  ww      w         ww   wwwwww",
     "w               www    w   wwwwww",
     "w p            www          wwwww",
     "w            ww              wwww",
-    "wwwwwwwwww                    www",
-    "ww  ww  www   e   wwwwww        w",
-    "w         wwwwwwwwww   wwwwwwwwww",
+    "wwwwwwwwww                      w",
+    "wwwwwwwwwww       wwwwww        w",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
 ]
 
 const LEVELS = [level1];

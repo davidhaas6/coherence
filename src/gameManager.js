@@ -5,7 +5,7 @@
 
 class GameManager {
     constructor() {
-        this.background = null;
+        this.clouds = null;
 
         this.walls = [];
         this.enemies = [];
@@ -46,7 +46,7 @@ class GameManager {
         }
 
         // init backg clouds
-        this.background = new BackgroundClouds(tilemap[0].length * TILE_SIZE, tilemap.length * TILE_SIZE);
+        this.clouds = new BackgroundClouds(tilemap[0].length * TILE_SIZE, tilemap.length * TILE_SIZE, 100);
 
         // set game to playing
         gameState = GameState.playing;
@@ -74,7 +74,7 @@ class GameManager {
 
     // Returns the tile at the x,y coordinates in reference to the level
     whichTile(x, y) {
-        
+
         let tilemap = LEVELS[this.levelIndex];
         return tilemap[floor(y / TILE_SIZE)][floor(x / TILE_SIZE)];
     }
@@ -173,6 +173,9 @@ class GameManager {
                 let collision = this.collisionCheck(bullet, this.activeTimeline());
                 if (collision != null) {
                     toRemove.push(i);
+
+                    // push back player
+                    this.activeTimeline().acceleration.add(bullet.velocity.setMag(10));
                     this.levelLost();
                 }
             } else {
@@ -192,7 +195,7 @@ class GameManager {
         }
 
         // remove inactive bullets
-        toRemove.forEach((removeIndex) => this.bullets.splice(removeIndex, 1));  
+        toRemove.forEach((removeIndex) => this.bullets.splice(removeIndex, 1));
     }
 
     // gets the screen/map's current drawing translation, so that the player is centered
@@ -203,29 +206,75 @@ class GameManager {
         var max_y = LEVELS[this.levelIndex].length * TILE_SIZE;
 
         let trans = center.copy().sub(playerLoc);
+
+
         if ((playerLoc.x + center.x) > max_x) {
             trans.x = SCREEN_X - max_x;
         } else if (playerLoc.x - center.x < 0) {
             trans.x = 0;
         }
+
         if (playerLoc.y + center.y > max_y) {
             trans.y = SCREEN_Y - max_y;
         } else if (playerLoc.y - center.y < 0) {
             trans.y = 0;
         }
 
-
         return trans;
+    }
+
+
+    drawBg() {
+
+        // level bounds
+        let max_x = LEVELS[this.levelIndex][0].length * TILE_SIZE;
+        let max_y = LEVELS[this.levelIndex].length * TILE_SIZE;
+
+        // sprite dimensions
+        let backg_w = sprites.backg.width * 2;
+        let backg_h = sprites.backg.height * 2;
+
+        let skyline_w = sprites.skyline.width * 2
+        let skyline_h = sprites.skyline.height * 2;
+
+        let buildings_w = sprites.buildings.width
+        let buildings_h = sprites.buildings.height;
+
+        let trans = this.getTranslation();
+
+        // draw skyline
+        // push();
+        // translate(trans.copy().mult(0.01));
+        // for (let i = 0; i < Math.ceil(max_x / backg_w); i++) {
+        //     image(sprites.backg, i * backg_w, max_y - backg_h, backg_w, backg_h);
+        // }
+        // pop();
+
+        push();
+        translate(trans.copy().mult(0.1));
+        for (let i = 0; i < Math.ceil(max_x / skyline_w); i++) {
+            image(sprites.skyline, i * skyline_w, max_y - skyline_h, skyline_w, skyline_h);
+        }
+        pop();
+
+        // draw building sprite in the middle of the map 
+        push();
+        translate(trans.mult(0.3));
+        let cx = max_x / 2 - buildings_w / 2;
+        image(sprites.buildings, cx, max_y - buildings_h, buildings_w, buildings_h);
+        pop();
+
+
     }
 
     // main draw loop
     draw() {
         background(palette.background2);
-
+        this.drawBg();
         push();
         translate(this.getTranslation());
 
-        this.background.draw();
+        this.clouds.draw();
 
         this.walls.forEach((wall, idx) => {
             wall.draw();

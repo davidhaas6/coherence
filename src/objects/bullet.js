@@ -10,7 +10,7 @@ class Bullet {
         if (!playerBullet) {
             // enemy bullet
             this.charge = new Charge(x, y, null, false, false, 0, 8, 100000);
-            this.charge.riseFrames = 0.5 * TARGET_FPS;
+            this.charge.riseFrames = 0.25 * TARGET_FPS;
             this.charge.color = palette.sentryPointer;
             this.charge.numTriangles = 8;
         }

@@ -21,16 +21,23 @@ class Player {
         this.w = 18;
         this.h = 30;
 
+
         this.airborne = false;
+        this.dropped = false; // dash down mid-air
+
         this.shootFlag = false;
+        this.shootCooldown = 0.5 * TARGET_FPS;
+        this.lastShot = -1;
+
 
         this.force = {
             jump: createVector(0, -10),
+            drop: createVector(0, 6),
             moveRight: createVector(1.5, 0),
             moveLeft: createVector(-1.5, 0),
             gravity: createVector(0, 0.6),
+            shoot: createVector(8,-2),
 
-            shootFactor: 0.1,
             dragFactor: 0.75,  // percent movement speed when mid air
             frictionFactor: -0.25, // how much player slides after moving
             collisionFactor: -0.1,
@@ -44,7 +51,11 @@ class Player {
     // notify the player object of an event
     notify(event, data) {
         if (event == PhysicsEvent.GROUNDED) {
+            if(this.dropped) {
+                sounds.playerThump.play(); 
+            }
             this.airborne = false;
+            this.dropped = false;
         } else if (event == PhysicsEvent.AIRBORNE) {
             this.airborne = true;
         }
@@ -59,8 +70,9 @@ class Player {
         let keyDown = this.processMovement();
 
         // shooting
-        if (mouseIsPressed && !this.shootFlag) {
+        if (mouseIsPressed && (frameCount - this.lastShot) > this.shootCooldown && !this.shootFlag) {
             this.shootFlag = true;
+            this.lastShot = frameCount;
             this.fireGun();
         } else if (!mouseIsPressed) {
             this.shootFlag = false;
@@ -107,6 +119,13 @@ class Player {
             sounds.playerJump.play();
         }
 
+        else if(keyIsDown(83) && this.airborne && !this.dropped) {
+            print("dropped!");
+            this.dropped = true;
+            this.acceleration.add(this.force.drop);
+            sounds.playerJump.play();
+        }
+
         return keyDown;
     }
 
@@ -133,6 +152,12 @@ class Player {
     fireGun() {
         this.anim.setState(PlayerState.shooting);
 
+        // knockback
+        let knockback = this.force.shoot.copy();
+        if(this.curDirection == Dir.RIGHT) knockback.x *= -1;
+        this.acceleration.add(knockback);
+
+        // spawn bullet
         let vel = this.curDirection == Dir.RIGHT ? createVector(9, 0) : createVector(-9, 0);
         game.spawnBullet(this.pos.x, this.pos.y + 18, vel, true);
     }

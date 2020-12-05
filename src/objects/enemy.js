@@ -20,7 +20,7 @@ class Enemy {
 
         this.attackCooldown = 1;
         this.lastAttack = -1;
-        this.attackDist = 300;
+        this.attackDist = 200;
     }
 
     notify(event, data) {
