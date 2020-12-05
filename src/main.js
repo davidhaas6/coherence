@@ -13,7 +13,6 @@ function preload() {
 	// images used in the game
 	sprites = {
 		player_map: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/player_sprite.png'),
-		enemy: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/enemy1.png'),
 		walls: [
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall1.png'),
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall2.png'),
@@ -22,17 +21,20 @@ function preload() {
 		],
 		buildings: loadImage('assets/near-buildings-bg.png'),
 		skyline: loadImage('assets/buildings-bg.png'),
-		backg: loadImage('assets/skyline-a.png')
+		backg: loadImage('assets/skyline-a.png'),
+		backgAlt: loadImage('assets/skyline-a.png')
 	};
 
 	// sounds used in the game
 	sounds = {
 		levelLose: loadSound('assets/audio/level_lose.wav'),
+		teleport: loadSound('assets/audio/teleport.wav'),
 
 		playerShoot: loadSound('assets/audio/pew.wav'),
 		playerJump: loadSound('assets/audio/jump.wav'),
 		playerThump: loadSound('assets/audio/thump.wav'),
 		newTimeline: loadSound('assets/audio/quantum.wav'),
+		noQuanta: loadSound('assets/audio/click.wav'),
 
 		enemyDie: loadSound('assets/audio/explode.wav'),
 		enemyShoot: loadSound('assets/audio/zap.wav'),

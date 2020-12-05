@@ -28,6 +28,13 @@ const LevelStatus = {
 	won: 2
 }
 
+var GameEvent = {
+    AIRBORNE: 0,
+    GROUNDED: 1,
+    REACTIVATE: 2,
+    TELEPORTING: 3,
+};
+
 
 // Game objects
 var gameState;
@@ -60,7 +67,7 @@ const level1 = [
     "ww  ww      w         ww   wwwwww",
     "w               www    w   wwwwww",
     "w p            www          wwwww",
-    "w            ww              wwww",
+    "w       x    ww              wwww",
     "wwwwwwwwww                      w",
     "wwwwwwwwwww       wwwwww        w",
     "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",

@@ -7,24 +7,32 @@ class GameManager {
     constructor() {
         this.clouds = null;
 
+        this.initEntities();
+
+        this.levelIndex = 0;
+        this.levelStatus = null;
+        this.endTime = null;
+
+        this.numCharges = 2;
+        this.playerSpawn = [0, 0];
+    }
+
+    // inits the game entities to empty variables
+    initEntities() {
         this.walls = [];
         this.enemies = [];
         this.timelines = [];
         this.gates = [];
         this.bullets = [];
 
-
-        this.levelIndex = 0;
-        this.levelStatus = null;
-        this.endTime = null;
+        this.activeIndex = 0;  // active timeline index
+        this.usedCharges = 0;
     }
 
     // load a new level
     loadLevel() {
         // Loads the level specified by levelIndex
-        this.walls = [];
-        this.enemies = [];
-        this.gates = [];
+        this.initEntities();
         let tilemap = LEVELS[this.levelIndex];
 
         for (let i = 0; i < tilemap.length; i++) {
@@ -34,6 +42,7 @@ class GameManager {
                         this.walls.push(new Wall(j * TILE_SIZE, i * TILE_SIZE));
                         break;
                     case 'p':
+                        this.playerSpawn = [j * TILE_SIZE, i * TILE_SIZE];
                         this.timelines.push(new Player(j * TILE_SIZE, i * TILE_SIZE));
                         break;
                     case 'e':
@@ -135,7 +144,28 @@ class GameManager {
 
     // get the player's active timeline
     activeTimeline() {
-        return this.timelines[this.timelines.length - 1]
+        return this.timelines[this.activeIndex];
+    }
+
+    canBranch() {
+        return this.timelines.length < this.numCharges && this.levelStatus == LevelStatus.playing;
+    }
+
+    newTimeline() {
+        if (this.canBranch()) {
+            this.timelines.push(new Player(this.playerSpawn[0], this.playerSpawn[1]));
+            this.activeIndex++;
+        }
+    }
+
+    gateReached() {
+        this.activeTimeline().notify(GameEvent.TELEPORTING);
+        if (this.activeIndex == 0)
+            this.levelWon();
+        else {
+            this.activeIndex--;
+            this.activeTimeline().notify(GameEvent.REACTIVATE);
+        }
     }
 
     // create a new bullet, either for the player or enemy
@@ -224,15 +254,15 @@ class GameManager {
     }
 
 
+    // draws background images
     drawBg() {
-
         // level bounds
         let max_x = LEVELS[this.levelIndex][0].length * TILE_SIZE;
         let max_y = LEVELS[this.levelIndex].length * TILE_SIZE;
 
         // sprite dimensions
-        let backg_w = sprites.backg.width * 2;
-        let backg_h = sprites.backg.height * 2;
+        let backg_w = sprites.backg.width * 2.5;
+        let backg_h = sprites.backg.height * 2.5;
 
         let skyline_w = sprites.skyline.width * 2
         let skyline_h = sprites.skyline.height * 2;
@@ -243,12 +273,13 @@ class GameManager {
         let trans = this.getTranslation();
 
         // draw skyline
-        // push();
-        // translate(trans.copy().mult(0.01));
-        // for (let i = 0; i < Math.ceil(max_x / backg_w); i++) {
-        //     image(sprites.backg, i * backg_w, max_y - backg_h, backg_w, backg_h);
-        // }
-        // pop();
+        push();
+        translate(trans.copy().mult(0.1));
+        for (let i = 0; i < Math.ceil(max_x / backg_w); i++) {
+            let img = i % 2 == 0 ? sprites.backg : sprites.backgAlt;
+            image(img, i * backg_w, max_y - backg_h, backg_w, backg_h);
+        }
+        pop();
 
         push();
         translate(trans.copy().mult(0.1));
@@ -267,10 +298,40 @@ class GameManager {
 
     }
 
+    drawHUD() {
+        let d = 16, weight = 3, spacing = 5;
+        let y = SCREEN_Y - (spacing + d), x = 95;
+        let mainColor = palette.charge2;
+
+        push();
+        ellipseMode(CORNER);
+
+        // text
+        fill(palette.charge2);
+        textFont(fonts.glitch);
+        textSize(16);
+        text("Quanta:", 5, SCREEN_Y - 8);
+
+        // charges
+        for (let i = 0; i < this.numCharges - 1; i++) {
+            noFill();
+            stroke(palette.background2);
+            strokeWeight(weight);
+            circle(x + i * (spacing + weight + d), y, d);
+
+            fill(0, 255, 192, 200);
+            if (this.timelines.length + i < this.numCharges)
+                circle(x + i * (spacing + weight + d), y, d);
+        }
+        pop();
+    }
+
     // main draw loop
     draw() {
         background(palette.background2);
+
         this.drawBg();
+
         push();
         translate(this.getTranslation());
 
@@ -289,13 +350,18 @@ class GameManager {
         });
 
         if (this.levelStatus == LevelStatus.playing || secs() < (this.endTime + 1)) {
-            this.activeTimeline().draw();
+            this.timelines.forEach((playerBranch, idx) => {
+                if (idx <= this.activeIndex)  // don't draw timelines who've reached the end
+                    playerBranch.draw();
+            });
         }
 
         this.gates.forEach((gate, idx) => {
             gate.draw();
         });
         pop();
+
+        this.drawHUD();
 
         // level win/lose dialogue
         if (this.levelStatus != LevelStatus.playing && secs() > (this.endTime + 1)) {
@@ -327,6 +393,7 @@ class GameManager {
         if (this.levelStatus != LevelStatus.playing && secs() > this.endTime + 2) {
             if (secs() > this.endTime + 5) {
                 gameState = GameState.mainMenu;
+                print("moving to menu");
             }
             return;
         }
@@ -339,21 +406,24 @@ class GameManager {
             this.enemies.forEach((enemy, idx) => {
                 enemy.process();
             });
+
+            // process gates
+            this.gates.forEach((gate, idx) => {
+                gate.process();
+                let collision = this.collisionCheck(this.activeTimeline(), gate);
+                if (collision) {
+                    sounds.teleport.play();
+                    this.gateReached();
+                }
+            });
         }
 
-        // process gates
-        this.gates.forEach((gate, idx) => {
-            gate.process();
-            let collision = this.collisionCheck(this.activeTimeline(), gate);
-            if (collision) {
-                this.levelWon();
-            }
-        });
+
 
         // process player
         if (this.levelStatus == LevelStatus.playing || secs() < (this.endTime + 0.3)) {
             let airState = this.isAirborne(this.activeTimeline()) ?
-                PhysicsEvent.AIRBORNE : PhysicsEvent.GROUNDED;
+                GameEvent.AIRBORNE : GameEvent.GROUNDED;
             this.activeTimeline().notify(airState, null);
 
             this.activeTimeline().process();

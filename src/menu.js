@@ -219,7 +219,7 @@ class MainMenu {
     updatePlayer() {
         this.player.draw();
 
-        if(random() < 0.03 && frameCount > this.playerAnim.shootStart + this.playerAnim.shootCooldown) {
+        if(random() < 0.02 && frameCount > this.playerAnim.shootStart + this.playerAnim.shootCooldown) {
             // this.playerAnim.isRunning = false;
             this.player.anim.setState(PlayerState.shooting);
             this.playerAnim.shootStart = frameCount;

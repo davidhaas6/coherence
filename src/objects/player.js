@@ -9,26 +9,34 @@ const PlayerState = {
     running: 1,
     shooting: 2,
     airborne: 3,
-    dying: 4,
+    branching: 4,
+    reactivating: 5,
+    teleporting: 6,
 }
 
 class Player {
     constructor(x, y) {
         this.pos = createVector(x, y);
-        this.acceleration = createVector(0, 0);
-        this.velocity = createVector(0, 0);
 
         this.w = 18;
         this.h = 30;
 
+        // branching/quanta mechanics
+        this.branchStart = -1;
+        this.branchLength = 15;  // frames for animation to complete
+        this.branchKeyReleased = true;
 
-        this.airborne = false;
-        this.dropped = false; // dash down mid-air
-
+        // shooting 
         this.shootFlag = false;
         this.shootCooldown = 0.5 * TARGET_FPS;
         this.lastShot = -1;
 
+        // movement
+        this.acceleration = createVector(0, 0);
+        this.velocity = createVector(0, 0);
+
+        this.airborne = false;
+        this.dropped = false; // dash down mid-air
 
         this.force = {
             jump: createVector(0, -10),
@@ -36,31 +44,56 @@ class Player {
             moveRight: createVector(1.5, 0),
             moveLeft: createVector(-1.5, 0),
             gravity: createVector(0, 0.6),
-            shoot: createVector(8,-2),
+            shoot: createVector(8, -2),
 
             dragFactor: 0.75,  // percent movement speed when mid air
             frictionFactor: -0.25, // how much player slides after moving
             collisionFactor: -0.1,
         }
 
-        this.curDirection = Dir.RIGHT;
 
+        // animation and appearance
         this.anim = new AnimationState(PlayerState.idle);
+
+        this.teleporting = false;
+        this.branching = false;
+        this.reactivating = false;
+
+        this.curDirection = Dir.RIGHT;
     }
 
     // notify the player object of an event
     notify(event, data) {
-        if (event == PhysicsEvent.GROUNDED) {
-            if(this.dropped) {
-                sounds.playerThump.play(); 
+        switch (event) {
+            case GameEvent.GROUNDED: {
+                if (this.dropped) {
+                    sounds.playerThump.play();
+                }
+                this.airborne = false;
+                this.dropped = false;
+                break;
             }
-            this.airborne = false;
-            this.dropped = false;
-        } else if (event == PhysicsEvent.AIRBORNE) {
-            this.airborne = true;
+            case GameEvent.AIRBORNE: {
+                this.airborne = true;
+                break;
+            }
+            case GameEvent.REACTIVATE: {
+                this.anim.releaseFrame();
+                this.reactivating = true;
+                break;
+            }
+            case GameEvent.TELEPORTING: {
+                this.teleporting = true;
+                break;
+            }
+
+            default:
+                print("UNKNOWN EVENT. event: " + event + " data: " + data);
+                break;
         }
     }
 
+    // centroid of the player's hitbox
     centroid() {
         return createVector(this.pos.x + this.w / 2, this.pos.y + this.h / 2);
     }
@@ -79,9 +112,7 @@ class Player {
         }
 
         // branch timelines
-        if (keyIsDown(81)) {
-            this.branchTimeline();
-        }
+        this.processBranching();
 
         this.processAnimState(keyDown);
 
@@ -101,29 +132,30 @@ class Player {
         var air_reduction = this.airborne ? this.force.dragFactor : 1;  // slow down player strafing mid-air
         let keyDown = false;
 
-        if (keyIsDown(65)) {
-            this.acceleration.add(this.force.moveLeft.copy().mult(air_reduction));
-            this.curDirection = Dir.LEFT;
-            keyDown = true;
-        }
-        if (keyIsDown(68)) {
-            this.acceleration.add(this.force.moveRight.copy().mult(air_reduction));
-            this.curDirection = Dir.RIGHT;
-            keyDown = true;
-        }
+        if (!this.anim.playingOnehotAnimation()) {
+            if (keyIsDown(65)) {
+                this.acceleration.add(this.force.moveLeft.copy().mult(air_reduction));
+                this.curDirection = Dir.LEFT;
+                keyDown = true;
+            }
+            if (keyIsDown(68)) {
+                this.acceleration.add(this.force.moveRight.copy().mult(air_reduction));
+                this.curDirection = Dir.RIGHT;
+                keyDown = true;
+            }
 
-        // Jumping
-        if ((keyIsDown(32) || keyIsDown(87)) && !this.airborne) {
-            this.acceleration.add(this.force.jump);
-            this.airborne = true;
-            sounds.playerJump.play();
-        }
+            // Jumping
+            if ((keyIsDown(32) || keyIsDown(87)) && !this.airborne) {
+                this.acceleration.add(this.force.jump);
+                this.airborne = true;
+                sounds.playerJump.play();
+            }
 
-        else if(keyIsDown(83) && this.airborne && !this.dropped) {
-            print("dropped!");
-            this.dropped = true;
-            this.acceleration.add(this.force.drop);
-            sounds.playerJump.play();
+            else if (keyIsDown(83) && this.airborne && !this.dropped) {
+                this.dropped = true;
+                this.acceleration.add(this.force.drop);
+                sounds.playerJump.play();
+            }
         }
 
         return keyDown;
@@ -141,12 +173,33 @@ class Player {
         }
     }
 
-    // routine to branch the player into a new timeline
-    branchTimeline() {
-        // TODO
-        this.anim.setState(PlayerState.dying);
-        sounds.newTimeline.play();
+
+    processBranching() {
+        if (keyIsDown(81) && !this.branching) {
+            // start branching
+            if (game.canBranch()) {
+                sounds.newTimeline.play();
+                this.branching = true;
+                this.branchStart = frameCount;
+            } else {
+                if (this.branchKeyReleased)
+                    sounds.noQuanta.play();
+            }
+
+            this.branchKeyReleased = false;
+
+        } else if (this.branching && (frameCount - this.branchStart) == this.branchLength) {
+            // complete branching
+            this.anim.holdFrame();
+            game.newTimeline();
+            this.branching = false;
+        }
+
+        if (!keyIsDown(81)) {
+            this.branchKeyReleased = true;
+        }
     }
+
 
     // routine when the player fires their weapon
     fireGun() {
@@ -154,7 +207,7 @@ class Player {
 
         // knockback
         let knockback = this.force.shoot.copy();
-        if(this.curDirection == Dir.RIGHT) knockback.x *= -1;
+        if (this.curDirection == Dir.RIGHT) knockback.x *= -1;
         this.acceleration.add(knockback);
 
         // spawn bullet
@@ -164,7 +217,14 @@ class Player {
 
     // decides the player's animation state based on their current actions
     processAnimState(keyDown) {
-        if (this.airborne) {
+        if (this.reactivating) {
+            this.anim.setState(PlayerState.reactivating, true);
+            this.reactivating = false;
+        } else if (this.branching) {
+            this.anim.setState(PlayerState.branching);
+        } else if (this.teleporting) {
+            this.anim.setState(PlayerState.teleporting, true);
+        } else if (this.airborne) {
             this.anim.setState(PlayerState.airborne);
         } else if (keyDown) {
             this.anim.setState(PlayerState.running);
@@ -199,11 +259,14 @@ class AnimationState {
     constructor(initialState) {
         this.state = initialState;
         this.startFrame = frameCount;
+
         this.nextState = null;
+        this.hold = false;
 
         this.spritemap = sprites.player_map;
         this.spriteSize = 64;
         this.scale = 1.5;
+
 
         // Corresponds with PlayerState object
         this.frames = [
@@ -211,7 +274,9 @@ class AnimationState {
             [1, 2, 3, 4, 5, 6],  // running
             [9, 10, 11, 12, 13],  // shooting
             [21],  // airborne
-            [27, 28, 29, 30, 31, 32, 33, 34],  // dying
+            [27, 28, 29, 30, 31, 32, 33, 34],  // branching
+            [34, 33, 32, 31, 30, 29, 28, 27], // reactivating
+            [7, 8]
         ]
 
         // how many frames each animation step is shown for, corrseponds with PlayerState object
@@ -221,12 +286,20 @@ class AnimationState {
             2,
             1,
             2,
+            2,
+            1,
         ]
     }
 
+    playingOnehotAnimation() {
+        return this.state == PlayerState.shooting ||
+            this.state == PlayerState.branching ||
+            this.state == PlayerState.reactivating;
+    }
+
     // sets the players animation state
-    setState(playerState) {
-        if (this.state == PlayerState.shooting || this.state == PlayerState.dying) {
+    setState(playerState, force = false) {
+        if (this.playingOnehotAnimation() && !force) {
             this.nextState = playerState;
         } else if (playerState != this.state) {
             this.state = playerState;
@@ -234,15 +307,24 @@ class AnimationState {
         }
     }
 
+    holdFrame() {
+        this.hold = frameCount;
+    }
+
+    releaseFrame() {
+        this.hold = false;
+    }
+
     // determines and draws the current frame players animation
     drawPlayer() {
+        let gameFrame = this.hold ? this.hold : frameCount;
 
         /* determine which animation frame to play */
         let animationFrames = this.frames[this.state];
-        let animFrameNumber = Math.floor((frameCount - this.startFrame) / this.frameLength[this.state]);  // the monotonously increasing animation frame number
+        let animFrameNumber = Math.floor((gameFrame - this.startFrame) / this.frameLength[this.state]);  // the monotonously increasing animation frame number
 
         // for one-hot animations, move on to the next queued animation after completion
-        if ((this.state == PlayerState.shooting || this.state == PlayerState.dying) && animFrameNumber > animationFrames.length) {
+        if (this.playingOnehotAnimation() && animFrameNumber > animationFrames.length) {
             this.state = this.nextState;
             this.startFrame = frameCount;
             animationFrames = this.frames[this.state];
@@ -254,13 +336,13 @@ class AnimationState {
 
         /* draw the animation */
         // the location of the frame within the spritemap 
-        let src = { 
+        let src = {
             x: (currentFrame % 6) * this.spriteSize,
             y: Math.floor(currentFrame / 6) * this.spriteSize,
         }
 
         // where to draw the frame on the canvas
-        let dst = { 
+        let dst = {
             x: -14,
             y: -57,
         }
