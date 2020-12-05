@@ -14,7 +14,6 @@ class GameManager {
         this.endTime = null;
 
         this.numCharges = 2;
-        this.playerSpawn = [0, 0];
     }
 
     // inits the game entities to empty variables
@@ -25,7 +24,6 @@ class GameManager {
         this.gates = [];
         this.bullets = [];
 
-        this.activeIndex = 0;  // active timeline index
         this.usedCharges = 0;
     }
 
@@ -45,7 +43,6 @@ class GameManager {
                         this.walls.push(new Wall(j * TILE_SIZE, i * TILE_SIZE));
                         break;
                     case 'p':
-                        this.playerSpawn = [j * TILE_SIZE, i * TILE_SIZE];
                         this.timelines.push(new Player(j * TILE_SIZE, i * TILE_SIZE));
                         break;
                     case 'e':
@@ -81,6 +78,19 @@ class GameManager {
 
             this.levelStatus = LevelStatus.lost;
             this.endTime = secs();
+        }
+    }
+
+    levelDone() {
+        if (this.levelStatus == LevelStatus.won) {
+            if (this.levelIndex == (LEVELS.length - 1)) {
+                gameState = GameState.mainMenu;
+            } else {
+                this.levelIndex++;
+                this.loadLevel();
+            }
+        } else if (this.levelStatus == LevelStatus.lost) {
+            this.loadLevel();
         }
     }
 
@@ -214,11 +224,13 @@ class GameManager {
 
             if (!bullet.playerBullet) {
                 // bullet-player collision   (fired by enemy)
-                let collision = this.collisionCheck(bullet, this.activeTimeline());
-                if (collision != null) {
-                    toRemove.push(i);
-                    this.activeTimeline().acceleration.add(bullet.velocity.setMag(10));
-                    this.playerHit();
+                if (!this.activeTimeline().branching) {
+                    let collision = this.collisionCheck(bullet, this.activeTimeline());
+                    if (collision != null) {
+                        toRemove.push(i);
+                        this.activeTimeline().acceleration.add(bullet.velocity.setMag(10));
+                        this.playerHit();
+                    }
                 }
             } else {
                 // bullet-enemy collision   (fired by player)
@@ -312,7 +324,7 @@ class GameManager {
 
     drawHUD() {
         let d = 16, weight = 3, spacing = 5;
-        let y = SCREEN_Y - (spacing + d), x = 95;
+        let y = SCREEN_Y - (spacing + d), x = 105;
         let mainColor = palette.charge2;
 
         push();
@@ -322,7 +334,7 @@ class GameManager {
         fill(palette.charge2);
         textFont(fonts.glitch);
         textSize(16);
-        text("Quanta:", 5, SCREEN_Y - 8);
+        text("Timelines:", 5, SCREEN_Y - 8);
 
         // charges
         for (let i = 0; i < this.numCharges; i++) {
@@ -403,7 +415,7 @@ class GameManager {
         // win/lose
         if (this.levelStatus != LevelStatus.playing && secs() > this.endTime + 2) {
             if (secs() > this.endTime + 5) {
-                gameState = GameState.mainMenu;
+                this.levelDone();
             }
             return;
         }

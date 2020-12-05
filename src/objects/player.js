@@ -82,6 +82,7 @@ class Player {
             }
             case GameEvent.REACTIVATE: {
                 this.anim.releaseFrame();
+                sounds.newTimeline.play();
                 this.reactivating = true;
                 break;
             }
