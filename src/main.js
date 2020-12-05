@@ -5,10 +5,12 @@
 
 
 function preload() {
+	// fonts used in the game
 	fonts = {
 		glitch: loadFont('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/glitch.otf'),
 	};
 
+	// images used in the game
 	sprites = {
 		player_map: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/player_sprite.png'),
 		enemy: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/enemy1.png'),
@@ -20,7 +22,20 @@ function preload() {
 		],
 
 	};
+
+	// sounds used in the game
+	sounds = {
+		levelLose: loadSound('assets/audio/level_lose.wav'),
+
+		playerShoot: loadSound('assets/audio/pew.wav'),
+		playerJump: loadSound('assets/audio/jump.wav'),
+		newTimeline: loadSound('assets/audio/quantum.wav'),
+
+		enemyDie: loadSound('assets/audio/explode.wav'),
+		enemyShoot: loadSound('assets/audio/zap.wav'),
+	}
 }
+
 
 function setup() {
 	createCanvas(SCREEN_X, SCREEN_Y);

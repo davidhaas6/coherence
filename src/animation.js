@@ -114,6 +114,7 @@ class Charge {
     }
 }
 
+// a set of charges
 class ChargeGroup {
     constructor(maxAudible = 100, noisy = false, diameter = 5, lifeSpan) {
         this.charges = [];
@@ -123,6 +124,7 @@ class ChargeGroup {
         this.lifeSpan = lifeSpan
     }
 
+    // add a charge
     add(x, y, dir = p5.Vector.random2D()) {
         this.charges.push(new Charge(x, y, dir, this.noisyMovement, this.charges.length < this.maxAudible, 0.01 * 100 / this.maxAudible, this.diameter, this.lifeSpan));
     }
@@ -153,21 +155,22 @@ class ChargeGroup {
 
 
 
-
+// animated background clouds
 class BackgroundClouds {
-    constructor(xMax, yMax) {
+    constructor(xMax, yMax, opacity=100, speed=0.01) {
         this.backgSeed = random(1500);
         this.xMax = xMax;
         this.yMax = yMax;
+        this.opacity = opacity;
+        this.noiseSpeed = speed;
     }
 
-    draw(level) {
+    draw() {
         const squareSize = 16;
         const stepX = 0.1, stepY = 0.1;
-        var noiseX = this.backgSeed, noiseY = 0, noiseSpeed = 0.01;
+        var noiseX = this.backgSeed, noiseY = 0;
 
         var lightness = 0;
-        let opacity = 100;
 
         push();
         noStroke();
@@ -176,14 +179,14 @@ class BackgroundClouds {
             for (let j = 0; j < this.yMax; j += squareSize) {
                 var noiseVal = map(noise(noiseX, noiseY), 0, 1, 0, 255 - lightness);
                 let cloudVal = lightness + noiseVal;
-                fill(cloudVal, cloudVal, cloudVal, opacity);
+                fill(cloudVal, cloudVal, cloudVal, this.opacity);
                 rect(i, j, squareSize, squareSize);
 
                 noiseY += stepY;
             }
             noiseX += stepX;
         }
-        this.backgSeed -= noiseSpeed;
+        this.backgSeed -= this.noiseSpeed;
 
         pop();
     }

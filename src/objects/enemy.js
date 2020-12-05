@@ -1,3 +1,8 @@
+/* Enemy
+    David Haas
+    Functions for the enemy turrets
+*/
+
 class Enemy {
     constructor(x, y) {
         this.pos = createVector(x, y);
@@ -29,7 +34,7 @@ class Enemy {
         // attack
         let toPlayer = game.activeTimeline().centroid().sub(this.centroid());
         if (toPlayer.mag() < this.attackDist && (secs() - this.lastAttack) > this.attackCooldown) {
-            let vel = toPlayer.setMag(10);
+            let vel = toPlayer.setMag(7);
             let c = this.centroid();
             game.spawnBullet(c.x, c.y, vel, false);
             this.lastAttack = secs();
@@ -44,7 +49,7 @@ class Enemy {
     draw() {
         let radius = 10;
 
-        // point the triangle at the player
+        // point the arm at the player
         if (game.activeTimeline() != null) {
             let toPlayer = game.activeTimeline().centroid().sub(this.centroid());
             if (toPlayer.mag() > 25)
@@ -57,17 +62,8 @@ class Enemy {
         push();
         translate(this.pos);
 
-        fill(200, 200, 200);
-        ellipseMode(CENTER);
-        // circle(this.w / 2, this.h / 2, radius * 2);
         this.body.draw();
-
         this.arm.draw();
-
-        // bounding box
-        // stroke(255, 0, 0, 100);
-        // noFill();
-        // rect(0, 0, this.w, this.h);
 
         pop();
     }

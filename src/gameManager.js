@@ -19,6 +19,7 @@ class GameManager {
         this.endTime = null;
     }
 
+    // load a new level
     loadLevel() {
         // Loads the level specified by levelIndex
         this.walls = [];
@@ -53,6 +54,7 @@ class GameManager {
         this.endTime = null;
     }
 
+    // level win routine
     levelWon() {
         if (this.levelStatus == LevelStatus.playing) {
             this.levelStatus = LevelStatus.won;
@@ -60,14 +62,26 @@ class GameManager {
         }
     }
 
+    // level lose routine
+    levelLost() {
+        if (this.levelStatus == LevelStatus.playing) {
+            sounds.levelLose.play();
+
+            this.levelStatus = LevelStatus.lost;
+            this.endTime = secs();
+        }
+    }
+
+    // Returns the tile at the x,y coordinates in reference to the level
     whichTile(x, y) {
-        // Returns the tile at the x,y coordinates in reference to the level
+        
         let tilemap = LEVELS[this.levelIndex];
         return tilemap[floor(y / TILE_SIZE)][floor(x / TILE_SIZE)];
     }
 
+    // determines if an entity is in the air or on ground
     isAirborne(entity) {
-        let vbuffer = 5, hbuffer = 3;  // TODO: this fixes the wall launch bug, but it could introduce its own bugs
+        let vbuffer = 2, hbuffer = 3;  // TODO: this fixes the wall launch bug, but it could introduce its own bugs
 
         let bottomY = entity.pos.y + entity.h + vbuffer;
         let x_bottomLeft = entity.pos.x + hbuffer;
@@ -77,6 +91,7 @@ class GameManager {
             this.whichTile(x_bottomRight, bottomY) != "w";
     }
 
+    // check if two entities collide
     collisionCheck(entity1, entity2, adjust = false) {
         // Distance between the centroids of the two entities
         var collisionVector = entity1.centroid().sub(entity2.centroid());
@@ -118,26 +133,33 @@ class GameManager {
         return collisionDirection;
     }
 
+    // get the player's active timeline
     activeTimeline() {
         return this.timelines[this.timelines.length - 1]
     }
 
+    // create a new bullet, either for the player or enemy
     spawnBullet(x, y, v, isPlayer) {
+        if (isPlayer) {
+            sounds.playerShoot.play();
+        } else {
+            sounds.enemyShoot.play();
+        }
         this.bullets.push(new Bullet(x, y, v, isPlayer));
     }
 
+    // handle bullet movement and collision
     processBullets() {
         let toRemove = [];
         for (let i = 0; i < this.bullets.length; i++) {
             let bullet = this.bullets[i];
             bullet.process();
 
-            // bullet wall
+            // bullet wall collision
             let wallCollision = false;
             for (let j = 0; j < this.walls.length; j++) {
                 let collision = this.collisionCheck(bullet, this.walls[j]);
                 if (collision != null) {
-                    print("wall collision!! " + collision);
                     toRemove.push(i);
                     wallCollision = true;
                     break;
@@ -150,27 +172,30 @@ class GameManager {
                 // bullet-player collision   (fired by enemy)
                 let collision = this.collisionCheck(bullet, this.activeTimeline());
                 if (collision != null) {
-                    print("player collision!! " + collision);
                     toRemove.push(i);
-                    // TODO: kill player
+                    this.levelLost();
                 }
             } else {
-                // bullet-enemy  (fired by player)
+                // bullet-enemy collision   (fired by player)
                 for (let j = 0; j < this.enemies.length; j++) {
                     let collision = this.collisionCheck(bullet, this.enemies[j]);
                     if (collision != null) {
-                        print("enemy collision!! " + collision);
                         toRemove.push(i);
-                        this.enemies.splice(i, 1);
+
+                        this.enemies.splice(j, 1);
+                        sounds.enemyDie.play();
+
                         break;
                     }
                 }
             }
         }
 
-        toRemove.forEach((removeIndex) => this.bullets.splice(removeIndex, 1));  // remove inactive bullets
+        // remove inactive bullets
+        toRemove.forEach((removeIndex) => this.bullets.splice(removeIndex, 1));  
     }
 
+    // gets the screen/map's current drawing translation, so that the player is centered
     getTranslation() {
         var playerLoc = this.activeTimeline().centroid();
         var center = createVector(SCREEN_X / 2, SCREEN_Y / 2);
@@ -193,10 +218,10 @@ class GameManager {
         return trans;
     }
 
-
+    // main draw loop
     draw() {
         background(palette.background2);
-        // this.drawBacktiles();
+
         push();
         translate(this.getTranslation());
 
@@ -223,7 +248,7 @@ class GameManager {
         });
         pop();
 
-
+        // level win/lose dialogue
         if (this.levelStatus != LevelStatus.playing && secs() > (this.endTime + 1)) {
             push();
             translate(20, 0);
@@ -237,13 +262,17 @@ class GameManager {
             fill(palette.charge2);
             text('Level', 155, SCREEN_Y / 2);
 
-            let outcome = this.levelStatus == LevelStatus.won ? 'Complete' : ' Failed '
-            text(outcome, 100, SCREEN_Y / 2 + 40);
+
+            if (this.levelStatus == LevelStatus.won) {
+                text('Complete', 100, SCREEN_Y / 2 + 40);
+            } else {
+                text('Failed', 146, SCREEN_Y / 2 + 40);
+            }
             pop();
         }
     }
 
-
+    // main processing loop
     process() {
         // win/lose
         if (this.levelStatus != LevelStatus.playing && secs() > this.endTime + 2) {
@@ -253,12 +282,15 @@ class GameManager {
             return;
         }
 
-        this.processBullets();
+        // only process enemies and bullets when game is active
+        if (this.levelStatus == LevelStatus.playing) {
+            this.processBullets();
 
-        // process enemies
-        this.enemies.forEach((enemy, idx) => {
-            enemy.process();
-        });
+            // process enemies
+            this.enemies.forEach((enemy, idx) => {
+                enemy.process();
+            });
+        }
 
         // process gates
         this.gates.forEach((gate, idx) => {
@@ -289,10 +321,9 @@ class GameManager {
         });
     }
 
+
     update() {
         this.process();
         this.draw();
     }
-
-
 }

@@ -1,7 +1,9 @@
-// David Haas
-// The classes for objects in the game
+/* Blocks
+    David Haas
+    Functions for various block objects in the game
+*/
 
-
+// a basic wall
 class Wall {
     constructor(x, y) {
         this.pos = createVector(x, y);
@@ -27,7 +29,7 @@ class Wall {
     }
 }
 
-
+// the gate, the player enters this to win
 class Gate {
     constructor(x, y) {
         this.pos = createVector(x, y);

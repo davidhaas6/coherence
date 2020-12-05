@@ -82,6 +82,7 @@ class Intro {
     }
 }
 
+// a button
 class Button {
     constructor(x, y, w, h, text, onClick = () => { }, color = palette.charge2, color2 = palette.charge1) {
         this.x = x;
@@ -155,11 +156,20 @@ class MainMenu {
 
         this.charges = new ChargeGroup(0, true, 8);
 
-        this.player = new Player(240, 432);
-        this.enemy = new Enemy(64, 400);
-        this.enemy2 = new Enemy(416, 400);
+        this.player = new Player(240, 150);
+        // this.player.pos.y = this.playButton.y - this.player.h;
+        this.playerAnim = {
+            step: 2,
+            shootStart: -1,
+            shootFrames: 10,
+            shootCooldown: 30,
+            isRunning: true,
+        }
+
+        this.clouds = new BackgroundClouds(SCREEN_X, SCREEN_Y, 40, 0.05);
     }
 
+    // loads buttons
     initButtons() {
         let leftX = 128;
         let topY = this.title.y + 64;
@@ -176,16 +186,15 @@ class MainMenu {
         this.settingsButton = new Button(leftX, topY + height * 2 + spacing * 2, width, height, "Settings", settingsClicked);
     }
 
+    // main processing loop
     update() {
         background(palette.background);
-
-        this.player.draw();
-        this.enemy.draw();
-        this.enemy2.draw();
-
         this.updateCharges();
 
         push();
+
+        this.clouds.draw();
+
         // Title
         textFont(this.title.font);
         textSize(this.title.size);
@@ -200,9 +209,43 @@ class MainMenu {
         this.instructionsButton.draw();
         this.settingsButton.draw();
 
+        // player
+        this.updatePlayer();
+
         pop();
     }
 
+    // animate the player running around and shooting
+    updatePlayer() {
+        this.player.draw();
+
+        if(random() < 0.03 && frameCount > this.playerAnim.shootStart + this.playerAnim.shootCooldown) {
+            // this.playerAnim.isRunning = false;
+            this.player.anim.setState(PlayerState.shooting);
+            this.playerAnim.shootStart = frameCount;
+
+        }
+
+        let shootingOver = (frameCount - this.playerAnim.shootStart) > this.playerAnim.shootFrames;
+
+        if (shootingOver) {
+            this.player.anim.setState(PlayerState.running);
+
+            // switch directions
+            let overRight = (this.player.pos.x + this.player.w)  > this.playButton.x + this.playButton.w + 70;
+            let overLeft = this.player.pos.x < this.playButton.x - 70;
+            if(overRight || overLeft || random() < 0.003) {
+                
+                this.playerAnim.step *= -1;
+                this.player.curDirection = this.player.curDirection == Dir.LEFT ? Dir.RIGHT : Dir.LEFT;
+            }
+
+            // move
+            this.player.pos.x += this.playerAnim.step;
+        }
+    }
+
+    // processes charges
     updateCharges() {
         var num = random();
         if (num < 0.25) {
@@ -214,6 +257,7 @@ class MainMenu {
         this.charges.draw();
     }
 
+    // button click routing
     onClick(event) {
         this.playButton.clickEvent(event.clientX, event.clientY);
         this.instructionsButton.clickEvent(event.clientX, event.clientY);
