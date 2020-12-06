@@ -3,42 +3,43 @@
 	Contains p5.js callback functions -- including those that control overall program flow
 */
 
+var remoteDir = 'https://raw.githubusercontent.com/davidhaas6/coherence/main/';
 
 function preload() {
 	// fonts used in the game
 	fonts = {
-		glitch: loadFont('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/glitch.otf'),
+		glitch: loadFont(remoteDir + 'assets/glitch.otf'),
 	};
 
 	// images used in the game
 	sprites = {
-		player_map: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/player_sprite.png'),
+		player_map: loadImage(remoteDir + 'assets/player_sprite.png'),
 		walls: [
-			loadImage('assets/wall1.png'),
-			loadImage('assets/wall2.png'),
-			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall3.png'),
-			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall4.png'),
+			loadImage(remoteDir + 'assets/wall1.png'),
+			loadImage(remoteDir + 'assets/wall2.png'),
+			loadImage(remoteDir + 'assets/wall3.png'),
+			loadImage(remoteDir + 'assets/wall4.png'),
 		],
 
-		buildings: loadImage('assets/near-buildings-bg.png'),
-		skyline: loadImage('assets/buildings-bg.png'),
-		backg: loadImage('assets/skyline-a.png'),
-		backgAlt: loadImage('assets/skyline-a.png')
+		buildings: loadImage(remoteDir + 'assets/near-buildings-bg.png'),
+		skyline: loadImage(remoteDir + 'assets/buildings-bg.png'),
+		backg: loadImage(remoteDir + 'assets/skyline-a.png'),
+		backgAlt: loadImage(remoteDir + 'assets/skyline-a.png')
 	};
 
 	// sounds used in the game
 	sounds = {
-		levelLose: loadSound('assets/audio/level_lose.wav'),
-		teleport: loadSound('assets/audio/teleport.wav'),
+		levelLose: loadSound(remoteDir + 'assets/audio/level_lose.wav'),
+		teleport: loadSound(remoteDir + 'assets/audio/teleport.wav'),
 
-		playerShoot: loadSound('assets/audio/pew.wav'),
-		playerJump: loadSound('assets/audio/jump.wav'),
-		playerThump: loadSound('assets/audio/thump.wav'),
-		newTimeline: loadSound('assets/audio/quantum.wav'),
-		noQuanta: loadSound('assets/audio/click.wav'),
+		playerShoot: loadSound(remoteDir + 'assets/audio/pew.wav'),
+		playerJump: loadSound(remoteDir + 'assets/audio/jump.wav'),
+		playerThump: loadSound(remoteDir + 'assets/audio/thump.wav'),
+		newTimeline: loadSound(remoteDir + 'assets/audio/quantum.wav'),
+		noQuanta: loadSound(remoteDir + 'assets/audio/click.wav'),
 
-		enemyDie: loadSound('assets/audio/explode.wav'),
-		enemyShoot: loadSound('assets/audio/zap.wav'),
+		enemyDie: loadSound(remoteDir + 'assets/audio/explode.wav'),
+		enemyShoot: loadSound(remoteDir + 'assets/audio/zap.wav'),
 	}
 }
 

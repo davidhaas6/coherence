@@ -302,10 +302,12 @@ class Instructions {
         text('Press space or W to jump', 20, 140);
         text('Press S to slam when airborne', 50, 170)
         text('Press Q to branch timelines', 20, 200);
-        text('Useful for tricky situations', 50, 230);
-        text('Click the mouse to shoot.', 20, 260);
-        text('Press ESCAPE to return to the menu.', 20, 290);
-        text('Reach the teleporter to win.', 20, 320);
+        text('Creates a superposition of yourself', 50, 230);
+        text('Useful for tricky situations', 50, 260);
+        text('Click the mouse to shoot.', 20, 290);
+        text('Shoot while jumping to go higher', 50, 320);
+        text('Press ESCAPE to return to the menu.', 20, 350);
+        text('Reach the teleporter to win.', 20, 380);
         pop();
     }
     onClick(event) {

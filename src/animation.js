@@ -163,10 +163,10 @@ class BackgroundClouds {
         this.yMax = yMax;
         this.opacity = opacity;
         this.noiseSpeed = speed;
+        this.squareSize = 16;
     }
 
     draw() {
-        const squareSize = 16;
         const stepX = 0.1, stepY = 0.1;
         var noiseX = this.backgSeed, noiseY = 0;
 
@@ -174,13 +174,13 @@ class BackgroundClouds {
 
         push();
         noStroke();
-        for (let i = 0; i < this.xMax; i += squareSize) {
+        for (let i = 0; i < this.xMax; i += this.squareSize) {
             noiseY = 0;
-            for (let j = 0; j < this.yMax; j += squareSize) {
+            for (let j = 0; j < this.yMax; j += this.squareSize) {
                 var noiseVal = map(noise(noiseX, noiseY), 0, 1, 0, 255 - lightness);
                 let cloudVal = lightness + noiseVal;
                 fill(cloudVal, cloudVal, cloudVal, this.opacity);
-                rect(i, j, squareSize, squareSize);
+                rect(i, j, this.squareSize, this.squareSize);
 
                 noiseY += stepY;
             }

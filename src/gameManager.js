@@ -56,6 +56,10 @@ class GameManager {
 
         // init backg clouds
         this.clouds = new BackgroundClouds(tilemap[0].length * TILE_SIZE, tilemap.length * TILE_SIZE, 100);
+        if(tilemap[0].length > 50 || tilemap.length > 50) {
+            this.clouds.squareSize = 32;
+            this.clouds.speed = 0.008;
+        }
 
         // set game to playing
         gameState = GameState.playing;
