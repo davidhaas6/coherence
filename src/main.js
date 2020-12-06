@@ -14,11 +14,12 @@ function preload() {
 	sprites = {
 		player_map: loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/player_sprite.png'),
 		walls: [
-			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall1.png'),
-			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall2.png'),
+			loadImage('assets/wall1.png'),
+			loadImage('assets/wall2.png'),
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall3.png'),
 			loadImage('https://raw.githubusercontent.com/davidhaas6/coherence/main/assets/wall4.png'),
 		],
+
 		buildings: loadImage('assets/near-buildings-bg.png'),
 		skyline: loadImage('assets/buildings-bg.png'),
 		backg: loadImage('assets/skyline-a.png'),

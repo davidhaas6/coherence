@@ -298,9 +298,9 @@ class GameManager {
 
         // draw skyline
         push();
-        translate(trans.copy().mult(0.1));
+        translate(trans.copy().mult(0.05));
         for (let i = 0; i < Math.ceil(max_x / backg_w); i++) {
-            let img = i % 2 == 0 ? sprites.backg : sprites.backgAlt;
+            let img = i % 2 == 0 ? sprites.backgAlt : sprites.backg;
             image(img, i * backg_w, max_y - backg_h, backg_w, backg_h);
         }
         pop();

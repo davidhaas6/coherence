@@ -228,6 +228,7 @@ class MainMenu {
         if (random() < 0.02 && frameCount > this.playerAnim.shootStart + this.playerAnim.shootCooldown) {
             // this.playerAnim.isRunning = false;
             this.player.anim.setState(PlayerState.shooting);
+            this.player.anim.setState(PlayerState.running);
             this.playerAnim.shootStart = frameCount;
 
         }
@@ -298,11 +299,13 @@ class Instructions {
         textSize(20);
         // textFont('Helvetica');
         text('Press A or D to move left or right.', 20, 110);
-        text('Press space or W to jump.', 20, 140);
-        text('Reach the teleporter to win.', 20, 170);
-        // q to branch
-        // esc to main menu
-        // s to slam
+        text('Press space or W to jump', 20, 140);
+        text('Press S to slam when airborne', 50, 170)
+        text('Press Q to branch timelines', 20, 200);
+        text('Useful for tricky situations', 50, 230);
+        text('Click the mouse to shoot.', 20, 260);
+        text('Press ESCAPE to return to the menu.', 20, 290);
+        text('Reach the teleporter to win.', 20, 320);
         pop();
     }
     onClick(event) {

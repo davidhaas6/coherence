@@ -27,7 +27,7 @@ class Player {
         this.branchKeyReleased = true;
 
         this.locationHistory = [];
-        this.historyLength = 5 * TARGET_FPS; // keep 5 seconds of location
+        this.historyLength = 3 * TARGET_FPS; // keep 5 seconds of location
 
         // shooting 
         this.shootFlag = false;

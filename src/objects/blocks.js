@@ -11,6 +11,10 @@ class Wall {
         this.w = TILE_SIZE;
         this.h = TILE_SIZE;
         this.sprite = random(sprites.walls);
+        // this.sprite = sprites.bricks;
+        this.spriteSize = 16;
+        this.r = floor(random(this.sprite.height / this.spriteSize));
+        this.c = floor(random(this.sprite.width / this.spriteSize));
     }
 
     notify(event, data) {
@@ -25,6 +29,7 @@ class Wall {
         push();
         translate(this.pos);
         image(this.sprite, 0, 0, this.w, this.h);
+        // image(this.sprite, 0, 0, this.w, this.h, this.c, this.r, this.spriteSize, this.spriteSize);
         pop();
     }
 }
