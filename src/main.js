@@ -64,7 +64,7 @@ function setup() {
 	globalSynth = new p5.MonoSynth();
 
 	// Init game logic
-	this.gameState = GameState.mainMenu; // TODO: Change to splashScreen
+	this.gameState = GameState.splashScreen; // TODO: Change to splashScreen
 	game = new GameManager();
 
 	// menus
